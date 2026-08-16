@@ -3,10 +3,13 @@ from contextlib import asynccontextmanager
 from urllib.parse import urlparse, urlunparse
 import configparser
 import json
+import logging
 
 from fastapi import FastAPI, Request, Response, HTTPException
-from playwright.async_api import async_playwright, Playwright, Browser, BrowserContext
+from playwright.async_api import async_playwright, BrowserContext
 import uvicorn
+
+logger = logging.getLogger("uvicorn")
 
 PROXY_HOSTNAME = [
     "www.luogu.com.cn",
@@ -36,12 +39,10 @@ RESPONSE_HEADER_FILTER = {
 with open("config/data.json") as file:
     data = json.load(file)
 
-playwright: Playwright = None
-browser: Browser = None
 context: BrowserContext = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global playwright, browser, context
+    global context
     playwright = await async_playwright().start()
     browser = await {
         "chromium": playwright.chromium,
@@ -54,13 +55,21 @@ async def lifespan(app: FastAPI):
     )
     tmp_context = await browser.new_context()
     page = await tmp_context.new_page()
-    user_agent = await page.evaluate("navigator.userAgent")
+    user_agent: str = await page.evaluate("navigator.userAgent")
     user_agent = user_agent.replace("Headless", "")
     await tmp_context.close()
     context = await browser.new_context(user_agent=user_agent)
     try:
         yield
     finally:
+        try:
+            await context.close()
+        except Exception as e:
+            logger.error(e)
+        try:
+            await browser.close()
+        except Exception as e:
+            logger.error(e)
         await playwright.stop()
 
 app = FastAPI(lifespan=lifespan)
@@ -82,6 +91,7 @@ async def route_proxy(request: Request):
     if url.hostname not in PROXY_HOSTNAME or (url.port and url.port != 443):
         raise HTTPException(400, "X-Target-URL is non-whitelisted")
     url = urlunparse(url)
+    logger.info(f"X-Target-URL: {url}")
     async with lock:
         await context.clear_cookies()
         cnt = 0
@@ -105,6 +115,7 @@ async def route_proxy(request: Request):
                 if url.scheme != "https":
                     raise HTTPException(403, "Redirect to non-HTTPS protocol")
                 url = urlunparse(url)
+                logger.info(f"Redirect to {url}")
                 cnt += 1
             else:
                 raise HTTPException(502, "Too many redirects")
