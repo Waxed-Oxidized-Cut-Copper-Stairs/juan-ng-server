@@ -21,10 +21,9 @@
 - 操作系统
   - Ubuntu 20.04.6 LTS
 - 服务端（代理服务器）环境
-  - Python 3.14.3 (pyenv 2.6.31-5-g70f096a9)
-  - Playwright 1.60.0
-  - FastAPI 0.137.2
-  - Uvicorn 0.49.0
-  - Jinja2 3.1.6
+  - Python 3.8.10 (3.8.10-0ubuntu1~20.04.18)
+  - Playwright 1.48.0
+  - FastAPI 0.124.4
+  - Uvicorn 0.33.0
 - 无头浏览器
   - Google Chrome 151.0.7922.137
