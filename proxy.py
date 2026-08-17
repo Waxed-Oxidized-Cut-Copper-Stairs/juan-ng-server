@@ -13,6 +13,7 @@ logger = logging.getLogger("uvicorn")
 
 PROXY_HOSTNAME = [
     "www.luogu.com.cn",
+    "www.luogu.com"
 ]
 
 config = configparser.ConfigParser()
@@ -29,6 +30,9 @@ CHANNEL = config.get("playwright", "channel", fallback=None)
 EXECUTABLE_PATH = config.get("playwright", "executable", fallback=None)
 if CHANNEL is None and EXECUTABLE_PATH is None:
     raise ValueError("没有指定 Playwright 使用的浏览器")
+
+# 二次代理配置
+PROXY = config.get("proxy", "proxy", fallback=None)
 
 # 被过滤的响应头
 RESPONSE_HEADER_FILTER = {
@@ -58,7 +62,10 @@ async def lifespan(app: FastAPI):
     user_agent: str = await page.evaluate("navigator.userAgent")
     user_agent = user_agent.replace("Headless", "")
     await tmp_context.close()
-    context = await browser.new_context(user_agent=user_agent)
+    context = await browser.new_context(
+        user_agent=user_agent,
+        proxy={ "server": PROXY }
+    )
     try:
         yield
     finally:
@@ -90,6 +97,9 @@ async def route_proxy(request: Request):
         raise HTTPException(400, "X-Target-URL should use HTTPS")
     if url.hostname not in PROXY_HOSTNAME or (url.port and url.port != 443):
         raise HTTPException(400, "X-Target-URL is non-whitelisted")
+    # if PROXY is not None and url.hostname == "www.luogu.com.cn":
+    #     url = url._replace(netloc="www.luogu.com")
+    #     logger.info(f"Use proxy: www.luogu.com.cn -> www.luogu.com")
     url = urlunparse(url)
     logger.info(f"X-Target-URL: {url}")
     async with lock:
