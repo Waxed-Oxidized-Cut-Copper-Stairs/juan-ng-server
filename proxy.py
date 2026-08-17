@@ -6,7 +6,7 @@ import json
 import logging
 
 from fastapi import FastAPI, Request, Response, HTTPException
-from playwright.async_api import async_playwright, BrowserContext
+from playwright.async_api import async_playwright, BrowserContext, Route
 import uvicorn
 
 logger = logging.getLogger("uvicorn")
@@ -60,10 +60,11 @@ async def lifespan(app: FastAPI):
     tmp_context = await browser.new_context()
     page = await tmp_context.new_page()
     user_agent: str = await page.evaluate("navigator.userAgent")
-    user_agent = user_agent.replace("Headless", "")
+    user_agent = user_agent.replace("Headless", "").strip()
     await tmp_context.close()
     context = await browser.new_context(
         user_agent=user_agent,
+        java_script_enabled=False,
         proxy={ "server": PROXY }
     )
     try:
@@ -104,35 +105,53 @@ async def route_proxy(request: Request):
     logger.info(f"X-Target-URL: {url}")
     async with lock:
         await context.clear_cookies()
+        page = await context.new_page()
         cnt = 0
+        err = None
+        # 使用浏览器导航替代 APIRequestContext
         # 手动重定向以避免 SSRF
-        try:
-            while cnt <= 20:
-                resp = await context.request.fetch(
-                    url,
-                    method=request.method,
-                    timeout=10000,
-                    max_redirects=0,
-                )
-                if resp.status not in (301, 302, 303, 307, 308):
-                    break
-                location = resp.headers.get("location")
-                if not location:
-                    break
-                url = urlparse(location, "https")
-                if url.hostname not in PROXY_HOSTNAME or (url.port and url.port != 443):
-                    raise HTTPException(403, "Redirect to non-whitelisted host")
-                if url.scheme != "https":
-                    raise HTTPException(403, "Redirect to non-HTTPS protocol")
-                url = urlunparse(url)
-                logger.info(f"Redirect to {url}")
-                cnt += 1
+        # 拦截资源加载、禁用 JS
+        async def route_handler(route: Route):
+            nonlocal cnt, err
+            req = route.request
+            if req.resource_type != "document":
+                await route.abort()
+                return
+            if cnt > 20:
+                err = HTTPException(502, "Too many redirects")
+                await route.abort()
+                return
+            url = urlparse(req.url, "https")
+            if url.hostname not in PROXY_HOSTNAME or (url.port and url.port != 443):
+                err = HTTPException(403, "Redirect to non-whitelisted host")
+                await route.abort()
+                return
+            if url.scheme != "https":
+                err = HTTPException(403, "Redirect to non-HTTPS protocol")
+                await route.abort()
+                return
+            url = urlunparse(url)
+            if cnt == 0:
+                logger.info(f"Navigate to {url}")
             else:
-                raise HTTPException(502, "Too many redirects")
+                logger.info(f"Redirect to {url}")
+            cnt += 1
+            await route.continue_()
+        await page.route("**/*", route_handler)
+        try:
+            resp = await page.goto(url, wait_until="load", timeout=10000)
         except Exception as e:
             print(e)
+            if err is not None:
+                raise err
             raise HTTPException(502)
-    resp_headers = {k: v for k, v in resp.headers.items() if k.lower() not in RESPONSE_HEADER_FILTER}
+        if resp is None:
+            raise HTTPException(502, "No response")
+    resp_headers = {}
+    for k, v in resp.headers.items():
+        if k.lower() in RESPONSE_HEADER_FILTER:
+            continue
+        resp_headers[k] = v.replace("\r", "").replace("\n", "")
     return Response(
         content=await resp.body(),
         status_code=resp.status,
