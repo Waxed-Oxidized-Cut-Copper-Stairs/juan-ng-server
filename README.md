@@ -57,8 +57,10 @@
 
 二、克隆代码
 
+以下代码将克隆最新版本的服务端，不含 Git 提交历史。
+
 ```bash
-git clone https://github.com/Wang-Yile/juan-ng-server.git
+git clone --depth 1 https://github.com/Wang-Yile/juan-ng-server.git
 cd juan-ng-server
 ```
 
