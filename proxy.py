@@ -100,6 +100,8 @@ async def route_proxy(request: Request):
     if not url:
         raise HTTPException(400, "Missing X-Target-URL header")
     url = urlparse(url, "https")
+    if url.hostname is None:
+        raise HTTPException(400, "Missing hostname for X-Target-URL")
     if url.scheme != "https":
         raise HTTPException(400, "X-Target-URL should use HTTPS")
     if url.hostname not in PROXY_HOSTNAME or (url.port and url.port != 443):
