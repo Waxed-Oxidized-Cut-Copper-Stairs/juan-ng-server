@@ -4,6 +4,7 @@ from urllib.parse import urlparse, urlunparse
 import configparser
 import json
 import logging
+import time
 
 from fastapi import FastAPI, Request, Response, HTTPException
 from playwright.async_api import async_playwright, BrowserContext, Route
@@ -33,6 +34,9 @@ if CHANNEL is None and EXECUTABLE_PATH is None:
 
 # 二次代理配置
 PROXY = config.get("proxy", "proxy", fallback=None)
+
+# 速率配置
+MS_PER_REQ = config.getint("rate", "ms_per_req", fallback=None)
 
 # 被过滤的响应头
 RESPONSE_HEADER_FILTER = {
@@ -87,9 +91,11 @@ async def route_data():
     return data
 
 lock = Lock()
+last_req = 0
 
 @app.api_route("/proxy", methods=["GET"])
 async def route_proxy(request: Request):
+    global last_req
     url = request.headers.get("x-target-url")
     if not url:
         raise HTTPException(400, "Missing X-Target-URL header")
@@ -98,6 +104,9 @@ async def route_proxy(request: Request):
         raise HTTPException(400, "X-Target-URL should use HTTPS")
     if url.hostname not in PROXY_HOSTNAME or (url.port and url.port != 443):
         raise HTTPException(400, "X-Target-URL is non-whitelisted")
+    if MS_PER_REQ is not None and (time.monotonic() - last_req) * 1000 < MS_PER_REQ:
+        raise HTTPException(429, "Too many requests")
+    last_req = time.monotonic()
     # if PROXY is not None and url.hostname == "www.luogu.com.cn":
     #     url = url._replace(netloc="www.luogu.com")
     #     logger.info(f"Use proxy: www.luogu.com.cn -> www.luogu.com")
