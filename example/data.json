@@ -1,0 +1,11 @@
+[
+    {
+        "name": "示例配置文件",
+        "accounts": [
+            {
+                "luogu": 1,
+                "cf": "MikeMirzayanov"
+            }
+        ]
+    }
+]
