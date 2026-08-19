@@ -4,12 +4,12 @@ from asyncio import Lock
 from contextlib import asynccontextmanager
 from urllib.parse import urlparse, urlunparse
 import configparser
-import json
 import logging
 import time
 
 from fastapi import FastAPI, Request, Response, HTTPException
 from playwright.async_api import async_playwright, BrowserContext, Route
+import json5 as json
 import uvicorn
 
 logger = logging.getLogger("uvicorn")
