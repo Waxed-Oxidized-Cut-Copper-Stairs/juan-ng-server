@@ -2,13 +2,15 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 
 # 联考水表机服务端
 
-*Last Update：2026-08-18*
+*Last Update：2026-08-19*
 
-> 在 GNU General Public License, version 3 or later 之下发布，不提供任何担保。完整声明和条款请见 LICENSE 和 COPYING 文件。
+> 本程序在 GNU General Public License, version 3 or later 之下发布，不提供任何担保。完整声明和条款请见 LICENSE 和 COPYING 文件。
+>
+> 例外：本 README 文件在 [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) 协议下发布。
 
 需要与客户端 [juan-ng-client](https://github.com/Waxed-Oxidized-Cut-Copper-Stairs/juan-ng-client) 配套使用。
 
-服务端默认占用系统 6969 端口，可以在 `config/config.conf` 中修改，详见后文配置项目说明。
+服务端默认占用系统 6969 端口，可以在 `config/config.conf` 中修改，详见后文 [配置项目说明](#配置项目说明)。
 
 除非特殊需要且完全了解潜在风险，**不要把服务器暴露到公网！**
 
@@ -47,6 +49,8 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 
 接下来介绍如何在 Windows 或 Debian/Ubuntu 上安装。
 
+**如果你使用 NOILinux 并且只想快速开始使用，可以直接跳转到后文 [NOILinux 快速部署脚本](#noilinux-快速部署脚本) 部分。**
+
 一、安装 Python 和 Git。
 
 你可以从下面的网页了解如何安装 Python 和 Git。
@@ -84,7 +88,7 @@ juan-ng-server/
 
 `config/data.json` 中存放爬取的目标。目标是分组存放的，**必须填写洛谷 UID，且保证同一个 UID 只出现一次**。
 
-`config/config.conf` 中存放服务端运行的配置项。详见后文的配置项目说明。
+`config/config.conf` 中存放服务端运行的配置项。详见后文 [配置项目说明](#配置项目说明)。
 
 四、创建 Python 虚拟环境
 
@@ -242,6 +246,75 @@ journalctl --user -u juan-ng.service -e
 
 用户注销时，服务会被自动杀死。
 
+## NOILinux 快速部署脚本
+
+如果遇到问题，请查看 [常见问题 Q&A](#常见问题-qa)。如果无法解决，请 [咨询开发者](#联系方式)。
+
+对于 NOILinux 用户，请逐条执行如下命令。
+
+```bash
+sudo apt update
+sudo apt install git
+sudo apt install python3-venv
+
+git clone --depth 1 https://github.com/Waxed-Oxidized-Cut-Copper-Stairs/juan-ng-server.git
+cd juan-ng-server
+
+cp -r example config
+
+python3 -m venv .venv
+source .venv/bin/activate
+pip3 install -r requirements.txt -i https://mirror.tuna.tsinghua.edu.cn/pypi/web/simple
+
+playwright install chromium
+
+# 下面这条命令应当输出洛谷 P1001 题目页面的 HTML
+curl http://127.0.0.1:6969/proxy -H "X-Target-URL: https://www.luogu.com.cn/problem/P1001"
+```
+
+上述命令完成了部署指南的一到八步，**推荐按照部署指南第九步和第十步继续操作，以增强匿名性和使用体验**。
+
+## 常见问题 Q&A
+
+此处没有提到的问题请 [加入 QQ 群询问](#联系方式)。
+
+> 无法使用 APT 安装软件，具体表现为
+>
+> ```
+> sudo apt update
+> ```
+>
+> 卡住。
+
+原因：NOILinux 2.0 已经停止支持，Ubuntu 位于中国的镜像服务器不再维护该系统的软件源。
+
+解决方法：打开“软件和更新”程序，在“Ubuntu 软件”页签下把“下载自”选项设置为“主服务器”。
+
+> 执行如下命令（Git 克隆）时需要用户名和密码，或者提示“鉴权失败”。
+>
+> ```
+> git clone --depth 1 https://github.com/Waxed-Oxidized-Cut-Copper-Stairs/juan-ng-server.git
+> ```
+
+原因：本仓库是 GitHub 组织的私有仓库，需要鉴权。
+
+解决方法：
+
+1. 创建令牌。
+     - 请先 [联系开发者](#联系方式) 加入组织
+     - 在 [PAT 管理页面](https://github.com/settings/personal-access-tokens) 点击 *Generate new token* 按钮创建令牌
+     - 把 *Resource owner* 设置为组织名 `Waxed-Oxidized-Cut-Copper-Stairs`
+     - 把 *Repository access* 设置为 All repositories
+     - 在 *Permissions* 中授予 `Contents` 的 `read-only` 权限
+     - 点击 *Generate token* 按钮，**记下** 弹出的以 `github_pat_` 开头的字符串，这就是令牌
+2. 使用令牌。
+     - 在 `Username for 'https://github.com':` 处输入 `Waxed-Oxidized-Cut-Copper-Stairs`
+     - 在 `Password for 'https://Waxed-Oxidized-Cut-Copper-Stairs@github.com':` 处粘贴你的令牌
+
+> Playwright 安装无头浏览器卡住。
+
+解决方法：请尝试使用 VPN，或改用部署指南第六步的方案 B。
+
 ## 配置项目说明
 
 修改配置项需要重启服务器生效。
@@ -265,3 +338,7 @@ journalctl --user -u juan-ng.service -e
 四、rate 章节
 
 - `ms_per_req` 两次请求间至少间隔的时间。单位为毫秒。默认为 `10000`，即 10 秒。请求频率过快会触发服务端返回 429。
+
+## 联系方式
+
+QQ 群：703429369
