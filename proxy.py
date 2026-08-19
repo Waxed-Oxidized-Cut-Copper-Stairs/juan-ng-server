@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 from asyncio import Lock
 from contextlib import asynccontextmanager
 from urllib.parse import urlparse, urlunparse

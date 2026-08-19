@@ -1,3 +1,5 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+
 # 联考水表机服务端
 
 *Last Update：2026-08-18*
