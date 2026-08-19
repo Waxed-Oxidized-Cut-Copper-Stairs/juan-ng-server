@@ -4,7 +4,7 @@
 
 > 在 GNU General Public License, version 3 or later 之下发布，不提供任何担保。完整声明和条款请见 LICENSE 和 COPYING 文件。
 
-需要与客户端 [juan-ng-client](https://github.com/Wang-Yile/juan-ng-client) 配套使用。
+需要与客户端 [juan-ng-client](https://github.com/Waxed-Oxidized-Cut-Copper-Stairs/juan-ng-client) 配套使用。
 
 服务端默认占用系统 6969 端口，可以在 `config/config.conf` 中修改，详见后文配置项目说明。
 
@@ -60,7 +60,7 @@
 以下代码将克隆最新版本的服务端，不含 Git 提交历史。
 
 ```bash
-git clone --depth 1 https://github.com/Wang-Yile/juan-ng-server.git
+git clone --depth 1 https://github.com/Waxed-Oxidized-Cut-Copper-Stairs/juan-ng-server.git
 cd juan-ng-server
 ```
 
