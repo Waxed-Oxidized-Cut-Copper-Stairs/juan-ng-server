@@ -246,6 +246,17 @@ journalctl --user -u juan-ng.service -e
 
 用户注销时，服务会被自动杀死。
 
+## 更新指南
+
+执行如下命令以更新。
+
+**注意**：如果你修改了源代码，这会覆盖你的修改，但不会覆盖配置文件。
+
+```bash
+git fetch --depth=1 origin main
+git reset --hard FETCH_HEAD
+```
+
 ## NOILinux 快速部署脚本
 
 如果遇到问题，请查看 [常见问题 Q&A](#常见问题-qa)。如果无法解决，请 [咨询开发者](#联系方式)。
