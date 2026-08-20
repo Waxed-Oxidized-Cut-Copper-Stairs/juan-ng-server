@@ -25,6 +25,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 - [更新指南](#更新指南)
 - [NOILinux 快速部署脚本](#noilinux-快速部署脚本)
 - [常见问题 Q\&A](#常见问题-qa)
+- [data.json 格式说明](#datajson-格式说明)
 - [配置项目说明](#配置项目说明)
 - [联系方式](#联系方式)
 
@@ -335,6 +336,30 @@ curl http://127.0.0.1:6969/proxy -H "X-Target-URL: https://www.luogu.com.cn/prob
 > Playwright 安装无头浏览器卡住。
 
 解决方法：请尝试使用 VPN，或改用部署指南第六步的方案 B。
+
+## data.json 格式说明
+
+JSON 文件会被 Python json5 解析器解析，支持注释。
+
+**注意**：必须保证所有用到的账号 UID/handle 只在 data.js 中出现一次。
+
+单个账号（`Account` 类型）用有如下字段的字典描述。其它平台的账号信息都会绑定到洛谷账号上显示。
+
+| 字段名 | 类型 | 必填 | 示例 | 说明 |
+| :- | :- | :-: | :-: | :- |
+| `luogu` | `number` | 是 | `123456` | 洛谷 UID |
+| `cf` | `string` | 否 | `"MikeMirzayanov"` | CodeForces 用户名 |
+| `at` | `string` | 否 | `"tourist"` | AtCoder 用户名 |
+| `pri` | `number` | 否 | `1` | 爬取优先级，可以填写 `0` `1` `2` 中的一个 |
+
+单个分组（`Group` 类型）用有如下字段的字典描述。
+
+| 字段名 | 类型 | 必填 | 示例 | 说明 |
+| :- | :- | :-: | :-: | :- |
+| `name` | `string` | 是 | `"信息小组"` | 组的名称 |
+| `accounts` | `Account[]` | 是 | 略 | 单个账号（`Account` 类型）组成的列表 |
+
+`data.json` 的内容是由 `Group` 类型组成的列表。
 
 ## 配置项目说明
 
