@@ -298,7 +298,7 @@ curl http://127.0.0.1:6969/proxy -H "X-Target-URL: https://www.luogu.com.cn/prob
 
 ## 常见问题 Q&A
 
-此处没有提到的问题请 [加入 QQ 群询问](#联系方式)。
+如果遇到此处没有提到的问题请 [加入 QQ 群询问或联系开发者](#联系方式)。
 
 > 无法使用 APT 安装软件，具体表现为
 >
@@ -388,3 +388,5 @@ JSON 文件会被 Python json5 解析器解析，支持注释。
 ## 联系方式
 
 QQ 群：703429369
+
+邮件：[bluewindde@163.com](mailto:bluewindde@163.com)
