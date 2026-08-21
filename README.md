@@ -312,27 +312,6 @@ curl http://127.0.0.1:6969/proxy -H "X-Target-URL: https://www.luogu.com.cn/prob
 
 解决方法：打开“软件和更新”程序，在“Ubuntu 软件”页签下把“下载自”选项设置为“主服务器”。
 
-> 执行如下命令（Git 克隆）时需要用户名和密码，或者提示“鉴权失败”。
->
-> ```
-> git clone --depth 1 https://github.com/Waxed-Oxidized-Cut-Copper-Stairs/juan-ng-server.git
-> ```
-
-原因：本仓库是 GitHub 组织的私有仓库，需要鉴权。
-
-解决方法：
-
-1. 创建令牌。
-     - 请先 [联系开发者](#联系方式) 加入组织
-     - 在 [PAT 管理页面](https://github.com/settings/personal-access-tokens) 点击 *Generate new token* 按钮创建令牌
-     - 把 *Resource owner* 设置为组织名 `Waxed-Oxidized-Cut-Copper-Stairs`
-     - 把 *Repository access* 设置为 All repositories
-     - 在 *Permissions* 中授予 `Contents` 的 `read-only` 权限
-     - 点击 *Generate token* 按钮，**记下** 弹出的以 `github_pat_` 开头的字符串，这就是令牌
-2. 使用令牌。
-     - 在 `Username for 'https://github.com':` 处输入 `Waxed-Oxidized-Cut-Copper-Stairs`
-     - 在 `Password for 'https://Waxed-Oxidized-Cut-Copper-Stairs@github.com':` 处粘贴你的令牌
-
 > Playwright 安装无头浏览器卡住。
 
 解决方法：请尝试使用 VPN，或改用部署指南第六步的方案 B。
