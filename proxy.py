@@ -161,18 +161,21 @@ async def route_proxy(request: Request):
                 raise HTTPException(502)
             if resp is None:
                 raise HTTPException(502, "No response")
+            resp_headers = {}
+            for k, v in resp.headers.items():
+                if k.lower() in RESPONSE_HEADER_FILTER:
+                    continue
+                resp_headers[k] = v.replace("\r", "").replace("\n", "")
+            return Response(
+                content=await resp.body(),
+                status_code=resp.status,
+                headers=resp_headers,
+            )
         finally:
-            await page.close()
-    resp_headers = {}
-    for k, v in resp.headers.items():
-        if k.lower() in RESPONSE_HEADER_FILTER:
-            continue
-        resp_headers[k] = v.replace("\r", "").replace("\n", "")
-    return Response(
-        content=await resp.body(),
-        status_code=resp.status,
-        headers=resp_headers,
-    )
+            try:
+                await page.close()
+            except Exception as e:
+                logger.error(e)
 
 if __name__ == "__main__":
     uvicorn.run("proxy:app", host=HOST, port=PORT, reload=DEBUG, log_level="info")
