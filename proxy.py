@@ -119,47 +119,50 @@ async def route_proxy(request: Request):
     async with lock:
         await context.clear_cookies()
         page = await context.new_page()
-        cnt = 0
-        err = None
-        # 使用浏览器导航替代 APIRequestContext
-        # 手动重定向以避免 SSRF
-        # 拦截资源加载、禁用 JS
-        async def route_handler(route: Route):
-            nonlocal cnt, err
-            req = route.request
-            if req.resource_type != "document":
-                await route.abort()
-                return
-            if cnt > 20:
-                err = HTTPException(502, "Too many redirects")
-                await route.abort()
-                return
-            url = urlparse(req.url, "https")
-            if url.hostname not in PROXY_HOSTNAME or (url.port and url.port != 443):
-                err = HTTPException(403, "Redirect to non-whitelisted host")
-                await route.abort()
-                return
-            if url.scheme != "https":
-                err = HTTPException(403, "Redirect to non-HTTPS protocol")
-                await route.abort()
-                return
-            url = urlunparse(url)
-            if cnt == 0:
-                logger.info(f"Navigate to {url}")
-            else:
-                logger.info(f"Redirect to {url}")
-            cnt += 1
-            await route.continue_()
-        await page.route("**/*", route_handler)
         try:
-            resp = await page.goto(url, wait_until="load", timeout=10000)
-        except Exception as e:
-            print(e)
-            if err is not None:
-                raise err
-            raise HTTPException(502)
-        if resp is None:
-            raise HTTPException(502, "No response")
+            cnt = 0
+            err = None
+            # 使用浏览器导航替代 APIRequestContext
+            # 手动重定向以避免 SSRF
+            # 拦截资源加载、禁用 JS
+            async def route_handler(route: Route):
+                nonlocal cnt, err
+                req = route.request
+                if req.resource_type != "document":
+                    await route.abort()
+                    return
+                if cnt > 20:
+                    err = HTTPException(502, "Too many redirects")
+                    await route.abort()
+                    return
+                url = urlparse(req.url, "https")
+                if url.hostname not in PROXY_HOSTNAME or (url.port and url.port != 443):
+                    err = HTTPException(403, "Redirect to non-whitelisted host")
+                    await route.abort()
+                    return
+                if url.scheme != "https":
+                    err = HTTPException(403, "Redirect to non-HTTPS protocol")
+                    await route.abort()
+                    return
+                url = urlunparse(url)
+                if cnt == 0:
+                    logger.info(f"Navigate to {url}")
+                else:
+                    logger.info(f"Redirect to {url}")
+                cnt += 1
+                await route.continue_()
+            await page.route("**/*", route_handler)
+            try:
+                resp = await page.goto(url, wait_until="load", timeout=10000)
+            except Exception as e:
+                print(e)
+                if err is not None:
+                    raise err
+                raise HTTPException(502)
+            if resp is None:
+                raise HTTPException(502, "No response")
+        finally:
+            await page.close()
     resp_headers = {}
     for k, v in resp.headers.items():
         if k.lower() in RESPONSE_HEADER_FILTER:
