@@ -2,13 +2,13 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 
 # 联考水表机服务端
 
-*Last Update：2026-08-19*
+*Last Update：2026-08-31*
 
 > 本程序在 GNU General Public License, version 3 or later 之下发布，不提供任何担保。完整声明和条款请见 LICENSE 和 COPYING 文件。
 >
 > 例外：本 README 文件在 [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) 协议下发布。
 
-需要与客户端 [juan-ng-client](https://github.com/Waxed-Oxidized-Cut-Copper-Stairs/juan-ng-client) 配套使用。
+需要与次版本号相同的客户端 [juan-ng-client](https://github.com/Waxed-Oxidized-Cut-Copper-Stairs/juan-ng-client) 配套使用。
 
 服务端默认占用系统 6969 端口，可以在 `config/config.conf` 中修改，详见后文 [配置项目说明](#配置项目说明)。
 
@@ -330,6 +330,7 @@ JSON 文件会被 Python json5 解析器解析，支持注释。
 | `cf` | `string` | 否 | `"MikeMirzayanov"` | CodeForces 用户名 |
 | `at` | `string` | 否 | `"tourist"` | AtCoder 用户名 |
 | `pri` | `number` | 否 | `1` | 爬取优先级，可以填写 `0` `1` `2` 中的一个 |
+| `star` | `boolean` | 否 | `false` | 用户是否打星，这只影响用户名渲染效果 |
 
 单个分组（`Group` 类型）用有如下字段的字典描述。
 
